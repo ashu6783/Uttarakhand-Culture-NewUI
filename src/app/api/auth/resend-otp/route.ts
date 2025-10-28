@@ -41,7 +41,9 @@ export async function POST(req: NextRequest) {
     try {
         const {email} = await req.json();
 
-        if (!email) throw new Error("Email is required");
+        if (!email) {
+            return NextResponse.json({ error: "Email is required" }, { status: 400 });
+        }
 
         // Check rate limit
         if (checkRateLimit(email)) {
@@ -57,7 +59,7 @@ export async function POST(req: NextRequest) {
         });
 
         if (!pendingUser) {
-            throw new Error("No pending signup found. Please sign up first.");
+            return NextResponse.json({ error: "No pending signup found. Please sign up first." }, { status: 400 });
         }
 
         // Check if last OTP is still valid (prevent spam)
@@ -102,8 +104,8 @@ export async function POST(req: NextRequest) {
         });
     } catch (error: any) {
         if (error instanceof z.ZodError) {
-            return NextResponse.json({error: error.errors}, {status: 500});
-        }
+               return NextResponse.json({error: error.errors}, {status: 500});
+            }
         console.log("[OTP_RESEND_ERROR]: ", error);
         return NextResponse.json({error: error.message}, {status: 500});
     }
